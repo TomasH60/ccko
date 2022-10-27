@@ -116,7 +116,7 @@ void v(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
         fseek(*subor, 0, SEEK_SET);
     }
 }
-void o(FILE **subor)
+void o(FILE **subor, char ***MerModul, char ***TypMerVeliciny, char ***Datum, char ***Cas, char ***Hodnota)
 {
     if (*subor == NULL)
     {
@@ -125,17 +125,145 @@ void o(FILE **subor)
     }
     char merModul[2048];
     char typMerVeliciny[2048];
+    double datum = 0;
     scanf("%s %s", merModul, typMerVeliciny);
+    int merModulPocet = 0;
 
+    int c = 0;
+    for (; (*MerModul)[merModulPocet] != NULL; merModulPocet++)
+        ;
+    for (int i = 0; i < merModulPocet; i++)
+    {
+        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i]))
+        {
+            c++;
+        }
+    }
+    double DatumCasArr[c];
+    double DatumCasArrNotSort[c];
+    double HodnotaArr[c];
+    c = 0;
+    char *ptr;
+    char *ptr2;
+    for (int i = 0; i < merModulPocet; i++)
+    {
+
+        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i]))
+        {
+            datum = (strtod((*Cas)[i], &ptr) / 10000) + atoi((*Datum)[i]);
+            DatumCasArr[c] = datum;
+            DatumCasArrNotSort[c] = datum;
+            HodnotaArr[c] = strtod((*Hodnota)[i], &ptr2);
+            c++;
+        }
+    }
+    for (int i = 0; i < c; i++)
+    {
+        for (int j = 0; j < c - 1; j++)
+        {
+            if (DatumCasArr[j] > DatumCasArr[j + 1])
+            {
+                double temp = DatumCasArr[j];
+                DatumCasArr[j] = DatumCasArr[j + 1];
+                DatumCasArr[j + 1] = temp;
+            }
+        }
+    }
+    for (int i = 0; i < c; i++)
+    {
+        if ((int)((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) < 1000)
+        {
+            for (int j = 0; j < c; j++)
+            {
+                if (DatumCasArr[i] == DatumCasArrNotSort[j])
+                {
+                    printf("%s %s     %d     0%d   %lf\n", merModul, typMerVeliciny, (int)DatumCasArr[i], (int)(((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) + 0.01), HodnotaArr[j]);
+                }
+            }
+        } else {
+            for (int j = 0; j < c; j++)
+            {
+                if (DatumCasArr[i] == DatumCasArrNotSort[j])
+                {
+                    printf("%s %s     %d     %d   %lf\n", merModul, typMerVeliciny, (int)DatumCasArr[i], (int)(((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000)+ 0.01), HodnotaArr[j]);
+                }
+            }
+        }
+    }
 }
-void h (char *** TypMerVeliciny, char *** Hodnota) {
-    if (*TypMerVeliciny == NULL) {
+void h(char ***TypMerVeliciny, char ***Hodnota)
+{
+    if (*TypMerVeliciny == NULL)
+    {
         printf("Polia nie su vytvorene.\n");
         return;
     }
     char typMerVel[2048];
     scanf("%s", typMerVel);
-
+    int pocetTypMerVel = 0;
+    double max = 0;
+    double min = 0;
+    char *ptr;
+    int c = 0;
+    double hodnotaTemp = 0;
+    for (; (*TypMerVeliciny)[pocetTypMerVel] != NULL; pocetTypMerVel++)
+        ;
+    for (int i = 0; i < pocetTypMerVel; i++)
+    {
+        if (!strcmp(typMerVel, (*TypMerVeliciny)[i]))
+        {
+            hodnotaTemp = strtod((*Hodnota)[i], &ptr);
+            if (hodnotaTemp > max)
+            {
+                max = hodnotaTemp;
+            }
+            else
+            {
+                min = hodnotaTemp;
+            }
+            c++;
+        }
+    }
+    double DoubleHodArr[c];
+    c = 0;
+    for (int i = 0; i < pocetTypMerVel; i++)
+    {
+        if (!strcmp(typMerVel, (*TypMerVeliciny)[i]))
+        {
+            hodnotaTemp = strtod((*Hodnota)[i], &ptr);
+            DoubleHodArr[c] = hodnotaTemp;
+            c++;
+        }
+    }
+    max = (int)max + (5 - ((int)max % 5));
+    int pocetIntervalov = max / 5;
+    double poc = 0;
+    int cislo = 0;
+    int index = 0;
+    printf("    %cx\t\tpocetnost\n", typMerVel[0]);
+    while (poc != max)
+    {
+        for (int i = 0; i < c; i++)
+        {
+            if (DoubleHodArr[i] > poc && DoubleHodArr[i] <= poc + 5)
+            {
+                cislo += 1;
+            }
+        }
+        if (cislo != 0)
+        {
+            printf("(%0.1lf -", poc);
+            poc += 5;
+            printf(" %0.1lf>", poc);
+            printf("\t   %d", cislo);
+            printf("\n");
+        }
+        else
+        {
+            poc += 5;
+        }
+        cislo = 0;
+    }
 }
 void n(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, char ***Cas, char ***Datum)
 {
@@ -192,14 +320,12 @@ void n(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
     }
     fseek(*subor, 0, SEEK_SET);
     riadokBezMedzier = 0;
-    
     *ID = malloc(pocetID * sizeof(char *) + 1);
     *MerModul = malloc(pocetMerModul * sizeof(char *) + 1);
     *TypMerVeliciny = malloc(pocetTypMerVeliciny * sizeof(char *) + 1);
     *Hodnota = malloc(pocetHodnota * sizeof(char *) + 1);
     *Cas = malloc(pocetCas * sizeof(char *) + 1);
     *Datum = malloc(pocetDatum * sizeof(char *) + 1);
-
     int indexID = 0;
     int indexMerModul = 0;
     int indexTypMerVeliciny = 0;
@@ -207,44 +333,44 @@ void n(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
     int indexCas = 0;
     int indexDatum = 0;
     int dlzka = 0;
-
     for (; fgets(readline, sizeof(readline), *subor) != NULL;)
     {
         if (readline[0] == 13)
         {
             continue;
         }
-        dlzka = strlen(readline);
-        readline[dlzka - 1] = '\0';
+        readline[strlen(readline) - 1] = '\0';
+        readline[strlen(readline) - 1] = '\0';
+
         switch (riadokBezMedzier % 6)
         {
         case 0:
-            (*ID)[indexID] = malloc(dlzka * sizeof(char));
+            (*ID)[indexID] = (char *)malloc(dlzka * sizeof(char));
             strcpy((*ID)[indexID], readline);
             indexID++;
             break;
         case 1:
-            (*MerModul)[indexMerModul] = malloc(dlzka * sizeof(char));
+            (*MerModul)[indexMerModul] = (char *)malloc(dlzka * sizeof(char));
             strcpy((*MerModul)[indexMerModul], readline);
             indexMerModul++;
             break;
         case 2:
-            (*TypMerVeliciny)[indexTypMerVeliciny] = malloc(dlzka * sizeof(char));
+            (*TypMerVeliciny)[indexTypMerVeliciny] = (char *)malloc(dlzka * sizeof(char));
             strcpy((*TypMerVeliciny)[indexTypMerVeliciny], readline);
             indexTypMerVeliciny++;
             break;
         case 3:
-            (*Hodnota)[indexHodnota] = malloc(dlzka * sizeof(char));
+            (*Hodnota)[indexHodnota] = (char *)malloc(dlzka * sizeof(char));
             strcpy((*Hodnota)[indexHodnota], readline);
             indexHodnota++;
             break;
         case 4:
-            (*Cas)[indexCas] = malloc(dlzka * sizeof(char));
+            (*Cas)[indexCas] = (char *)malloc(dlzka * sizeof(char));
             strcpy((*Cas)[indexCas], readline);
             indexCas++;
             break;
         case 5:
-            (*Datum)[indexDatum] = malloc(dlzka * sizeof(char));
+            (*Datum)[indexDatum] = (char *)malloc(dlzka * sizeof(char));
             strcpy((*Datum)[indexDatum], readline);
             indexDatum++;
             break;
@@ -258,13 +384,6 @@ void n(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
     (*Hodnota)[indexHodnota + 1] = NULL;
     (*Cas)[indexCas + 1] = NULL;
     (*Datum)[indexDatum + 1] = NULL;
-    /*printf("ID: %d\n", pocetID);
-     printf("MerModul: %d\n", pocetMerModul);
-     printf("TypMer: %d\n", pocetTypMerVeliciny);
-     printf("Hodnota: %d\n", pocetHodnota);
-     printf("Cas: %d\n", pocetCas);
-     printf("Datum: %d\n", pocetDatum);*/
-
     fseek(*subor, 0, SEEK_SET);
 }
 void c(FILE **subor)
@@ -536,7 +655,6 @@ void c(FILE **subor)
     }
     fseek(*subor, 0, SEEK_SET);
 }
-
 void r(char ***Cas)
 {
     if (*Cas == NULL)
@@ -547,7 +665,6 @@ void r(char ***Cas)
     int pocet = 0;
     for (; (*Cas)[pocet] != NULL; pocet++)
         ;
-    printf("caspocet: %d\n", pocet);
     int CasIntArr[pocet];
     int mocnina = 3;
     int cas = 0;
@@ -646,7 +763,8 @@ void r(char ***Cas)
     }
     printf("\n");
 }
-void z (char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, char ***Cas, char ***Datum) {
+void z(char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, char ***Cas, char ***Datum)
+{
     if (*ID == NULL)
     {
         printf("Polia nie su vytvorene.\n");
@@ -655,37 +773,47 @@ void z (char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, c
     int pocetID = 0;
     for (; (*ID)[pocetID] != NULL; pocetID++)
         ;
-    printf("IDpocet: %d\n", pocetID);
-    char strID[2048];
-    
-    scanf("%s", strID);
-    printf("strlen: %d\n", strlen(strID));
-    strID[strlen(strID)] = '\r';
-    int pocetcas = pocetID - 1;
+    long long int IDIntArr[pocetID];
+    int mocnina = 9;
+    long long int IDc = 0;
+    int cislo = 0;
+    for (int i = 0; (*ID)[i] != NULL; i++)
+    {
+        mocnina = 9;
+        for (int j = 0; (int)(*ID)[i][j] != 13; j++)
+        {
+            cislo = (int)(*ID)[i][j] - 48;
+            IDc += cislo * pow(10, mocnina);
+            mocnina--;
+        }
+        IDIntArr[i] = IDc;
+        IDc = 0;
+        cislo = 0;
+    }
+    long long int IDs = 0;
+    scanf("%lld", &IDs);
+    int pocet = 0;
     for (int i = 0; i < pocetID; i++)
     {
-        if(!strcmp((*ID)[i], strID)) {
-            printf("%d i\n", i);
-            memmove(&(*Cas)[pocetcas], &(*Cas)[pocetcas+1], pocetcas * sizeof(char*));
-            printf("POCEt CAS: %d\n", pocetcas);
-            pocetcas--;
+        if (IDIntArr[i] == IDs)
+        {
+            memmove(&(*ID)[i - pocet], &(*ID)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            memmove(&(*MerModul)[i - pocet], &(*MerModul)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            memmove(&(*TypMerVeliciny)[i - pocet], &(*TypMerVeliciny)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            memmove(&(*Hodnota)[i - pocet], &(*Hodnota)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            memmove(&(*Cas)[i - pocet], &(*Cas)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            memmove(&(*Datum)[i - pocet], &(*Datum)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            pocet++;
         }
     }
-    printf("%d", pocetcas);
-  
-    for (int i = 0; (*Cas)[i] != NULL; i++) {
-        printf("%s\n", (*Cas)[i]);
-        
+    if (pocet == 0)
+    {
+        printf("ID Neexistuje.\n");
     }
-    
-    
-    
-   
-    
-    
-    
-    
-    
+    else
+    {
+        printf("Vymazalo sa: %d zaznamov!\n", pocet);
+    }
 }
 int main()
 {
@@ -696,18 +824,19 @@ int main()
     char **Hodnota = NULL;
     char **Cas = NULL;
     char **Datum = NULL;
-
     while (1)
     {
         char prikaz;
         scanf(" %c", &prikaz);
+        while ((getchar()) != '\n')
+            ;
         switch (prikaz)
         {
         case 'v':
             v(&subor, &ID, &MerModul, &TypMerVeliciny, &Hodnota, &Cas, &Datum);
             break;
         case 'o':
-            o(&subor);
+            o(&subor, &MerModul, &TypMerVeliciny, &Datum, &Cas, &Hodnota);
             break;
         case 'n':
             n(&subor, &ID, &MerModul, &TypMerVeliciny, &Hodnota, &Cas, &Datum);
@@ -728,7 +857,6 @@ int main()
             z(&ID, &MerModul, &TypMerVeliciny, &Hodnota, &Cas, &Datum);
             break;
         case 'k':
-            // free()
             if (subor != NULL)
             {
                 fclose(subor);

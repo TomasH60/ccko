@@ -2,93 +2,46 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#define BUFFER 2048 // dlzka bufferu pre string
 
 void v(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, char ***Cas, char ***Datum)
 {
-    if (*subor == NULL)
+    if (*subor == NULL) // skontoluje ci uz je otvoreny subor
     {
-        *subor = fopen("./dataloger.txt", "r+");
-        if (*subor == NULL)
+        *subor = fopen("./dataloger.txt", "r"); // otvori sa subor na citanie
+        if (*subor == NULL)                     // ak subor nepodari otvorit
         {
             printf("Neotvoreny subor.\n");
             return;
         }
     }
 
-    if (*ID != NULL)
+    if (*ID != NULL) // ak uz su dynamicke polia vytvorene
     {
-        int eoaID = 0;
-        int eoaMerModul = 0;
-        int eoaTypMerVeliciny = 0;
-        int eoaHodnota = 0;
-        int eoaCas = 0;
-        int eoaDatum = 0;
-        for (int i = 0;; i++)
+        int i = 0; // pocitadlo indexu
+        while ((*ID)[i] != NULL && (*MerModul)[i] != NULL && (*TypMerVeliciny)[i] != NULL && (*Hodnota)[i] != NULL && (*Cas)[i] != NULL && (*Datum)[i] != NULL)
         {
-            if ((*ID)[i] == NULL)
-            {
-                eoaID = 1;
-            }
-            else
-            {
-                printf("ID cislo mer. osoby: %s\n", (*ID)[i]);
-            }
-            if ((*MerModul)[i] == NULL)
-            {
-                eoaMerModul = 1;
-            }
-            else
-            {
-                printf("Mer. modul: %s\n", (*MerModul)[i]);
-            }
-            if ((*TypMerVeliciny)[i] == NULL)
-            {
-                eoaTypMerVeliciny = 1;
-            }
-            else
-            {
-                printf("Typ mer. veliciny: %s\n", (*TypMerVeliciny)[i]);
-            }
-            if ((*Hodnota)[i] == NULL)
-            {
-                eoaHodnota = 1;
-            }
-            else
-            {
-                printf("Hodnota: %s\n", (*Hodnota)[i]);
-            }
-            if ((*Cas)[i] == NULL)
-            {
-                eoaCas = 1;
-            }
-            else
-            {
-                printf("Cas merania: %s\n", (*Cas)[i]);
-            }
-            if ((*Datum)[i] == NULL)
-            {
-                eoaDatum = 1;
-            }
-            else
-            {
-                printf("Datum: %s\n", (*Datum)[i]);
-            }
+            printf("ID cislo mer. osoby: %s\n", (*ID)[i]); // udaje sa printuju z dynamickych poli pokial sa element na kazdom indexe nerovna null cize koniec arrayu
+            printf("Mer. modul: %s\n", (*MerModul)[i]);
+            printf("Typ mer. veliciny: %s\n", (*TypMerVeliciny)[i]);
+            printf("Hodnota: %s\n", (*Hodnota)[i]);
+            printf("Cas merania: %s\n", (*Cas)[i]);
+            printf("Datum: %s\n", (*Datum)[i]);
             printf("\n");
-            if (eoaID && eoaMerModul && eoaTypMerVeliciny && eoaHodnota && eoaCas && eoaDatum)
-                break;
+            i++;
         }
     }
-    else
+    else // ak dynamicke polia niesu vytvorene udaje sa nacitavaju zo suboru
     {
-        int riadokBezMedzier = 0;
-        char readLine[2048];
-        for (; fgets(readLine, sizeof(readLine), *subor) != NULL;)
+        int riadokBezMedzier = 0;                                  // pocitadlo aktualneho riadku (bez medzier)
+        char readLine[BUFFER];                                     // string do ktoreho sa uklada riadok
+        for (; fgets(readLine, sizeof(readLine), *subor) != NULL;) // nacitava riadok po riadku pokial nieje na konci suboru (NULL)
         {
-            if (readLine[0] == 13)
+            if (readLine[0] == 13) // ak sa nacitany riadok == prazdnemu riadku tak tuto iteraciu preskoci
             {
                 continue;
             }
-            switch (riadokBezMedzier % 6)
+            switch (riadokBezMedzier % 6) // zisti na akom type riadku sa nachadza (ID, MerModul, ...) a vypise jednotlivy riadok
             {
             case 0:
                 printf("ID cislo mer. osoby: %s", readLine);
@@ -113,53 +66,50 @@ void v(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
             }
             riadokBezMedzier++;
         }
-        fseek(*subor, 0, SEEK_SET);
+        fseek(*subor, 0, SEEK_SET); // vrati pointer suboru na za zaciatok suboru
     }
 }
 void o(FILE **subor, char ***MerModul, char ***TypMerVeliciny, char ***Datum, char ***Cas, char ***Hodnota)
 {
-    if (*subor == NULL)
+    if (*subor == NULL) // ak subor nieje otvoreny
     {
         printf("Neotvoreny subor.\n");
         return;
     }
-    char merModul[2048];
-    char typMerVeliciny[2048];
-    double datum = 0;
-    scanf("%s %s", merModul, typMerVeliciny);
-    int merModulPocet = 0;
-
-    int c = 0;
-    for (; (*MerModul)[merModulPocet] != NULL; merModulPocet++)
-        ;
-    for (int i = 0; i < merModulPocet; i++)
+    char merModul[BUFFER];                       // string do ktoreho sa nacita mer modul
+    char typMerVeliciny[BUFFER];                 // string do ktoreho sa nacita typ mer veliciny
+    scanf("%s %s", merModul, typMerVeliciny);    // nacita mer modul a typ mer veliciny
+    int dlzkaArr = 0;                            // premenna pre dlzku arrayu jadnotlivych arrayov (DatumCasArr, HodnotaArr, DatumCasNotSort) pre dany mer modul a typ mer veliciny
+    for (int i = 0; (*MerModul)[i] != NULL; i++) // prechadza cez array pokial nieje koniec arrayu
     {
-        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i]))
+        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i])) // porovna stringy a zisti ci sa na danych indexoch a zisti na kolkych indexoch sa kombinacia mer modul a typ mer veliciny nachadza
         {
-            c++;
+            dlzkaArr++; // zvacsi dlzku arrayov += 1
         }
     }
-    double DatumCasArr[c];
-    double DatumCasArrNotSort[c];
-    double HodnotaArr[c];
-    c = 0;
-    char *ptr;
-    char *ptr2;
-    for (int i = 0; i < merModulPocet; i++)
+    if (dlzkaArr == 0) { // ak sa nenachadza kombinacia mer modulu a typu mer veliciny (nenasla sa ani jedna zhoda)
+        printf("Dana kombinacia sa nenachadza v subore.\n");
+        return;
+    }
+    double DatumCasArr[dlzkaArr];        // array pre kombinacie datumu a casu
+    double DatumCasArrNotSort[dlzkaArr]; // array pre kombinacie datumu a casu nezoradenych
+    double HodnotaArr[dlzkaArr];         // array pre hodnoty danych mer modul a typ mer veliciny
+    dlzkaArr = 0;
+    double datumCasDouble = 0;                   // premenna ktora docasne uklada hodnotu datumu a casu
+    for (int i = 0; (*MerModul)[i] != NULL; i++) // ten isty proces ako v loope nad tymto
     {
-
-        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i]))
+        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i])) // ten isty proces ako v loope nad tymto
         {
-            datum = (strtod((*Cas)[i], &ptr) / 10000) + atoi((*Datum)[i]);
-            DatumCasArr[c] = datum;
-            DatumCasArrNotSort[c] = datum;
-            HodnotaArr[c] = strtod((*Hodnota)[i], &ptr2);
-            c++;
+            datumCasDouble = (atof((*Cas)[i]) / 10000) + atoi((*Datum)[i]); // premeni cas na double a vydeli ho 10 000 a scita ho z datumom premeneny na int
+            DatumCasArr[dlzkaArr] = datumCasDouble;                         // zapise hodnoty do jednotlivych arrayov
+            DatumCasArrNotSort[dlzkaArr] = datumCasDouble;
+            HodnotaArr[dlzkaArr] = atof((*Hodnota)[i]);
+            dlzkaArr++; // posunie index arrayov
         }
     }
-    for (int i = 0; i < c; i++)
+    for (int i = 0; i < dlzkaArr; i++) // bubble sort na usporiadanie DatumCasArr vzostupne
     {
-        for (int j = 0; j < c - 1; j++)
+        for (int j = 0; j < dlzkaArr - 1; j++)
         {
             if (DatumCasArr[j] > DatumCasArr[j + 1])
             {
@@ -169,23 +119,19 @@ void o(FILE **subor, char ***MerModul, char ***TypMerVeliciny, char ***Datum, ch
             }
         }
     }
-    for (int i = 0; i < c; i++)
+    for (int i = 0; i < dlzkaArr; i++) // iteruje cez jednotlive arraye
     {
-        if ((int)((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) < 1000)
+        for (int j = 0; j < dlzkaArr; j++) // iteruje cez array DatumCasArrNotSort
         {
-            for (int j = 0; j < c; j++)
+            if (DatumCasArr[i] == DatumCasArrNotSort[j]) // zisti na ktorom indexe sa nachadza dana hodnota daneho datumu a casu
             {
-                if (DatumCasArr[i] == DatumCasArrNotSort[j])
+                if (((int)((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) + 0.01) < 1000) // ak je cas mensi ako 1000 (aby sa pred napr. 905 napisala 0 (0905))
                 {
                     printf("%s %s     %d     0%d   %lf\n", merModul, typMerVeliciny, (int)DatumCasArr[i], (int)(((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) + 0.01), HodnotaArr[j]);
                 }
-            }
-        } else {
-            for (int j = 0; j < c; j++)
-            {
-                if (DatumCasArr[i] == DatumCasArrNotSort[j])
+                else
                 {
-                    printf("%s %s     %d     %d   %lf\n", merModul, typMerVeliciny, (int)DatumCasArr[i], (int)(((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000)+ 0.01), HodnotaArr[j]);
+                    printf("%s %s     %d     %d   %lf\n", merModul, typMerVeliciny, (int)DatumCasArr[i], (int)(((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) + 0.01), HodnotaArr[j]);
                 }
             }
         }
@@ -240,7 +186,7 @@ void h(char ***TypMerVeliciny, char ***Hodnota)
     double poc = 0;
     int cislo = 0;
     int index = 0;
-    printf("    %cx\t\tpocetnost\n", typMerVel[0]);
+    printf("    %s\t\tpocetnost\n", typMerVel);
     while (poc != max)
     {
         for (int i = 0; i < c; i++)
@@ -274,11 +220,35 @@ void n(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
     }
     if (*ID != NULL)
     {
+        for (int i = 0; (*ID)[i] != NULL; i++)
+        {
+            free((*ID)[i]);
+        }
         free(*ID);
+        for (int i = 0; (*MerModul)[i] != NULL; i++)
+        {
+            free((*MerModul)[i]);
+        }
         free(*MerModul);
+        for (int i = 0; (*TypMerVeliciny)[i] != NULL; i++)
+        {
+            free((*TypMerVeliciny)[i]);
+        }
         free(*TypMerVeliciny);
+        for (int i = 0; (*Hodnota)[i] != NULL; i++)
+        {
+            free((*Hodnota)[i]);
+        }
         free(*Hodnota);
+        for (int i = 0; (*Cas)[i] != NULL; i++)
+        {
+            free((*Cas)[i]);
+        }
         free(*Cas);
+        for (int i = 0; (*Datum)[i] != NULL; i++)
+        {
+            free((*Datum)[i]);
+        }
         free(*Datum);
     }
     char readline[2048];
@@ -341,41 +311,39 @@ void n(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
         }
         readline[strlen(readline) - 1] = '\0';
         readline[strlen(readline) - 1] = '\0';
-
         switch (riadokBezMedzier % 6)
         {
         case 0:
-            (*ID)[indexID] = (char *)malloc(dlzka * sizeof(char));
+            (*ID)[indexID] = malloc(dlzka * sizeof(char));
             strcpy((*ID)[indexID], readline);
             indexID++;
             break;
         case 1:
-            (*MerModul)[indexMerModul] = (char *)malloc(dlzka * sizeof(char));
+            (*MerModul)[indexMerModul] = malloc(dlzka * sizeof(char));
             strcpy((*MerModul)[indexMerModul], readline);
             indexMerModul++;
             break;
         case 2:
-            (*TypMerVeliciny)[indexTypMerVeliciny] = (char *)malloc(dlzka * sizeof(char));
+            (*TypMerVeliciny)[indexTypMerVeliciny] = malloc(dlzka * sizeof(char));
             strcpy((*TypMerVeliciny)[indexTypMerVeliciny], readline);
             indexTypMerVeliciny++;
             break;
         case 3:
-            (*Hodnota)[indexHodnota] = (char *)malloc(dlzka * sizeof(char));
+            (*Hodnota)[indexHodnota] = malloc(dlzka * sizeof(char));
             strcpy((*Hodnota)[indexHodnota], readline);
             indexHodnota++;
             break;
         case 4:
-            (*Cas)[indexCas] = (char *)malloc(dlzka * sizeof(char));
+            (*Cas)[indexCas] = malloc(dlzka * sizeof(char));
             strcpy((*Cas)[indexCas], readline);
             indexCas++;
             break;
         case 5:
-            (*Datum)[indexDatum] = (char *)malloc(dlzka * sizeof(char));
+            (*Datum)[indexDatum] = malloc(dlzka * sizeof(char));
             strcpy((*Datum)[indexDatum], readline);
             indexDatum++;
             break;
         }
-
         riadokBezMedzier++;
     }
     (*ID)[indexID + 1] = NULL;
@@ -385,6 +353,97 @@ void n(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char 
     (*Cas)[indexCas + 1] = NULL;
     (*Datum)[indexDatum + 1] = NULL;
     fseek(*subor, 0, SEEK_SET);
+}
+void s(char ***MerModul, char ***TypMerVeliciny, char ***Datum, char ***Cas, char ***Hodnota)
+{
+    if (*MerModul == NULL)
+    {
+        printf("Polia nie su vytvorene.\n");
+        return;
+    }
+    FILE *vystupFile;
+    vystupFile = fopen("./vystup_S.txt", "w+");
+    if (vystupFile == NULL)
+    {
+        printf("err\n");
+        return;
+    }
+    char merModul[2048];
+    char typMerVeliciny[2048];
+    double datum = 0;
+    scanf("%s %s", merModul, typMerVeliciny);
+    int merModulPocet = 0;
+
+    int c = 0;
+    for (; (*MerModul)[merModulPocet] != NULL; merModulPocet++)
+        ;
+    for (int i = 0; i < merModulPocet; i++)
+    {
+        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i]))
+        {
+            c++;
+        }
+    }
+    double DatumCasArr[c];
+    double DatumCasArrNotSort[c];
+    double HodnotaArr[c];
+    c = 0;
+    char *ptr;
+    char *ptr2;
+    for (int i = 0; i < merModulPocet; i++)
+    {
+
+        if (!strcmp(typMerVeliciny, (*TypMerVeliciny)[i]) && !strcmp(merModul, (*MerModul)[i]))
+        {
+            datum = (strtod((*Cas)[i], &ptr) / 10000) + atoi((*Datum)[i]);
+            DatumCasArr[c] = datum;
+            DatumCasArrNotSort[c] = datum;
+            HodnotaArr[c] = strtod((*Hodnota)[i], &ptr2);
+            c++;
+        }
+    }
+    if (c == 0)
+    {
+        printf("Pre dany vstup neexistuju zaznamy.\n");
+        return;
+    }
+    for (int i = 0; i < c; i++)
+    {
+        for (int j = 0; j < c - 1; j++)
+        {
+            if (DatumCasArr[j] > DatumCasArr[j + 1])
+            {
+                double temp = DatumCasArr[j];
+                DatumCasArr[j] = DatumCasArr[j + 1];
+                DatumCasArr[j + 1] = temp;
+            }
+        }
+    }
+    for (int i = 0; i < c; i++)
+    {
+        if ((int)((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) < 1000)
+        {
+            for (int j = 0; j < c; j++)
+            {
+                if (DatumCasArr[i] == DatumCasArrNotSort[j])
+                {
+                    fprintf(vystupFile, "%d0%d\t%0.6lf\n", (int)DatumCasArr[i], (int)(((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) + 0.01), HodnotaArr[j]);
+                }
+            }
+        }
+        else
+        {
+            for (int j = 0; j < c; j++)
+            {
+                if (DatumCasArr[i] == DatumCasArrNotSort[j])
+                {
+                    fprintf(vystupFile, "%d%d\t%0.6lf\n", (int)DatumCasArr[i], (int)(((DatumCasArr[i] - (int)DatumCasArr[i]) * 10000) + 0.01), HodnotaArr[j]);
+                }
+            }
+        }
+    }
+    printf("Pre dany vstup je vytvoreny txt subor.\n");
+    fclose(vystupFile);
 }
 void c(FILE **subor)
 {
@@ -666,21 +725,14 @@ void r(char ***Cas)
     for (; (*Cas)[pocet] != NULL; pocet++)
         ;
     int CasIntArr[pocet];
-    int mocnina = 3;
     int cas = 0;
+
     for (int i = 0; (*Cas)[i] != NULL; i++)
     {
-        mocnina = 3;
-        for (int j = 0; (*Cas)[i][j] != '\0'; j++)
-        {
-            int cislo = (int)(*Cas)[i][j] - 48;
-            cas += cislo * (int)pow(10, mocnina);
-            mocnina--;
-        }
+        cas = atoi((*Cas)[i]);
         CasIntArr[i] = cas;
         cas = 0;
     }
-
     for (int i = 0; i < pocet; i++)
     {
         for (int j = 0; j < pocet - 1; j++)
@@ -693,11 +745,21 @@ void r(char ***Cas)
             }
         }
     }
+
+    int temp[pocet];
+    int j = 0;
+    for (int i = 0; i < pocet - 1; i++)
+        if (CasIntArr[i] != CasIntArr[i + 1])
+            temp[j++] = CasIntArr[i];
+    temp[j++] = CasIntArr[pocet - 1];
+    for (int i = 0; i < j; i++)
+        CasIntArr[i] = temp[i];
+
     int cislo = 0;
     int check = 0;
     int pocitadlo = 0;
     int c = 0;
-    for (int i = 0; i < pocet; i++)
+    for (int i = 0; i < j; i++)
     {
         if (i != 0 && (int)(CasIntArr[i] / 100) != cislo)
         {
@@ -780,7 +842,7 @@ void z(char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, ch
     for (int i = 0; (*ID)[i] != NULL; i++)
     {
         mocnina = 9;
-        for (int j = 0; (int)(*ID)[i][j] != 13; j++)
+        for (int j = 0; (int)(*ID)[i][j] != '\0'; j++)
         {
             cislo = (int)(*ID)[i][j] - 48;
             IDc += cislo * pow(10, mocnina);
@@ -845,7 +907,7 @@ int main()
             c(&subor);
             break;
         case 's':
-            /* code */
+            s(&MerModul, &TypMerVeliciny, &Datum, &Cas, &Hodnota);
             break;
         case 'h':
             h(&TypMerVeliciny, &Hodnota);
@@ -863,11 +925,35 @@ int main()
             }
             if (ID != NULL)
             {
+                for (int i = 0; (ID)[i] != NULL; i++)
+                {
+                    free((ID)[i]);
+                }
                 free(ID);
+                for (int i = 0; (MerModul)[i] != NULL; i++)
+                {
+                    free((MerModul)[i]);
+                }
                 free(MerModul);
+                for (int i = 0; (TypMerVeliciny)[i] != NULL; i++)
+                {
+                    free((TypMerVeliciny)[i]);
+                }
                 free(TypMerVeliciny);
+                for (int i = 0; (Hodnota)[i] != NULL; i++)
+                {
+                    free((Hodnota)[i]);
+                }
                 free(Hodnota);
+                for (int i = 0; (Cas)[i] != NULL; i++)
+                {
+                    free((Cas)[i]);
+                }
                 free(Cas);
+                for (int i = 0; (Datum)[i] != NULL; i++)
+                {
+                    free((Datum)[i]);
+                }
                 free(Datum);
             }
             return 0;

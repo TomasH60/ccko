@@ -1,1 +1,0 @@
-(int)DatumCasArr[i] == DatumArr[j]

@@ -916,15 +916,12 @@ void z(char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, ch
     for (; (*ID)[pocetID] != NULL; pocetID++) // zisti kolko ID je v array
         ;
     long long int IDIntArr[pocetID]; // vytvory array na ID v formate long long int
-    int mocnina = 9;
     long long int IDc = 0;
-    int cislo = 0;
     for (int i = 0; (*ID)[i] != NULL; i++)
     {
         IDc = atoll((*ID)[i]);
         IDIntArr[i] = IDc; // prida ho do arrayu
         IDc = 0;
-        cislo = 0;
     }
     long long int IDinput = 0;
     scanf("%lld", &IDinput); // nacita dane ID
@@ -933,11 +930,17 @@ void z(char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, ch
     {
         if (IDIntArr[i] == IDinput) // ak je zhoda danych ID
         {
+            free((*ID)[i - pocet]); // najprv uvolni string ktory sa pojde vymazat
             memmove(&(*ID)[i - pocet], &(*ID)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *)); // od indexu [i + 1 - pocet] posunie cely array na index [i - pocet] cim nahradi dany string ktory chceme vymazat (posuva pamat)
+            free((*MerModul)[i - pocet]);
             memmove(&(*MerModul)[i - pocet], &(*MerModul)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            free((*TypMerVeliciny)[i - pocet]);
             memmove(&(*TypMerVeliciny)[i - pocet], &(*TypMerVeliciny)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            free((*Hodnota)[i - pocet]);
             memmove(&(*Hodnota)[i - pocet], &(*Hodnota)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            free((*Cas)[i - pocet]);
             memmove(&(*Cas)[i - pocet], &(*Cas)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
+            free((*Datum)[i - pocet]);
             memmove(&(*Datum)[i - pocet], &(*Datum)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
             pocet++; // uchovava pocet vymazanych indexov aby sme sa vedeli posuvat relativne od vymazanych stringov
         }
@@ -954,19 +957,19 @@ void z(char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, ch
 int main()
 {
     FILE *subor = NULL;
-    char **ID = NULL;
+    char **ID = NULL; // deklaracia jednotlivych retazcov stringov
     char **MerModul = NULL;
     char **TypMerVeliciny = NULL;
     char **Hodnota = NULL;
     char **Cas = NULL;
     char **Datum = NULL;
-    while (1)
+    char prikaz;
+    while (1) // loop bezi pokial sa neukonci program
     {
-        char prikaz;
-        scanf(" %c", &prikaz);
-        while ((getchar()) != '\n')
+        scanf(" %c", &prikaz); // nacita prikaz
+        while ((getchar()) != '\n') // vycisti sa input
             ;
-        switch (prikaz)
+        switch (prikaz) // volanie jednotlivych funkcii podla zadaneho prikazu
         {
         case 'v':
             v(&subor, &ID, &MerModul, &TypMerVeliciny, &Hodnota, &Cas, &Datum);
@@ -993,11 +996,11 @@ int main()
             z(&ID, &MerModul, &TypMerVeliciny, &Hodnota, &Cas, &Datum);
             break;
         case 'k':
-            if (subor != NULL)
+            if (subor != NULL) // ak je subor otvoreny tak sa zavre
             {
                 fclose(subor);
             }
-            if (ID != NULL)
+            if (ID != NULL) // ak su vytvorene dynamicke polia tak sa uvolni pamat tych poli, aj stringov v nich
             {
                 for (int i = 0; (ID)[i] != NULL; i++)
                 {
@@ -1032,7 +1035,7 @@ int main()
             }
             return 0;
         default:
-            printf("Nespravny prikaz\n");
+            printf("Nespravny prikaz\n"); // nespravny prikaz
         }
     }
     return 0;

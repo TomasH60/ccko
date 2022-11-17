@@ -3,7 +3,7 @@
 #include <math.h>
 #include <string.h>
 #define BUFFER 2048 // dlzka bufferu pre string
-// v, o, n, c, s, h, r, z  done
+
 void v(FILE **subor, char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, char ***Cas, char ***Datum)
 {
     if (*subor == NULL) // skontoluje ci uz je otvoreny subor
@@ -930,7 +930,7 @@ void z(char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, ch
     {
         if (IDIntArr[i] == IDinput) // ak je zhoda danych ID
         {
-            free((*ID)[i - pocet]); // najprv uvolni string ktory sa pojde vymazat
+            free((*ID)[i - pocet]);                                                                // najprv uvolni string ktory sa pojde vymazat
             memmove(&(*ID)[i - pocet], &(*ID)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *)); // od indexu [i + 1 - pocet] posunie cely array na index [i - pocet] cim nahradi dany string ktory chceme vymazat (posuva pamat)
             free((*MerModul)[i - pocet]);
             memmove(&(*MerModul)[i - pocet], &(*MerModul)[i + 1 - pocet], (pocetID - i + 1) * sizeof(char *));
@@ -954,6 +954,182 @@ void z(char ***ID, char ***MerModul, char ***TypMerVeliciny, char ***Hodnota, ch
         printf("Vymazalo sa: %d zaznamov!\n", pocet);
     }
 }
+void j(char *** MerModul, char ***TypMerVeliciny, char ***Hodnota) {
+    if (*MerModul == NULL) // ak dynamicke polia niesu vytvorene
+    {
+        printf("Polia nie su vytvorene.\n");
+        return;
+    }
+    char merModul1[2048];
+    char merModul2[2048];
+    char typMerVel[2048];
+    
+    int pocitadlo1 = 0;
+    int pocitadlo2 = 0;
+    scanf("%s %s %s", merModul1, merModul2, typMerVel);
+    for (int i = 0; (*MerModul)[i] != NULL; i++)
+    {
+        if(!strcmp(merModul1, (*MerModul)[i]) && !strcmp(typMerVel, (*TypMerVeliciny)[i])) {
+            pocitadlo1++;
+        }
+        if(!strcmp(merModul2, (*MerModul)[i]) && !strcmp(typMerVel, (*TypMerVeliciny)[i])) {
+            pocitadlo2++;
+        }
+    }
+    if (pocitadlo1 == 0 || pocitadlo2 == 0)
+    {
+        printf("%s a %s sa nemozu porovnat.\n", merModul1, merModul2);
+        return;
+    }
+    double hodnotaArrModul1[pocitadlo1];
+    double hodnotaArrModul2[pocitadlo2];
+    int c1 = 0;
+    int c2 = 0;
+    for (int i = 0; (*MerModul)[i] != NULL; i++)
+    {
+        if(!strcmp(merModul1, (*MerModul)[i]) && !strcmp(typMerVel, (*TypMerVeliciny)[i])) {
+            hodnotaArrModul1[c1] = atof((*Hodnota)[i]);
+            c1++;
+        }
+        if(!strcmp(merModul2, (*MerModul)[i]) && !strcmp(typMerVel, (*TypMerVeliciny)[i])) {
+            hodnotaArrModul2[c2] = atof((*Hodnota)[i]);
+            c2++;
+        }
+    }
+    for (int i = 0; i < c1; i++) 
+    {
+        for (int j = 0; j < c1 - 1; j++)
+        {
+            if (hodnotaArrModul1[j] > hodnotaArrModul1[j + 1])
+            {
+                int temp = hodnotaArrModul1[j];
+                hodnotaArrModul1[j] = hodnotaArrModul1[j + 1];
+                hodnotaArrModul1[j + 1] = temp;
+            }
+        }
+    }
+    for (int i = 0; i < c2; i++) 
+    {
+        for (int j = 0; j < c2 - 1; j++)
+        {
+            if (hodnotaArrModul2[j] > hodnotaArrModul2[j + 1])
+            {
+                int temp = hodnotaArrModul2[j];
+                hodnotaArrModul2[j] = hodnotaArrModul2[j + 1];
+                hodnotaArrModul2[j + 1] = temp;
+            }
+        }
+    }
+    int q10Modul1Index = round((c1 - 1) * 0.1);
+    int q10Modul2Index = round((c2 - 1) * 0.1);
+    int q90Modul1Index = round((c1 - 1) * 0.9);
+    int q90Modul2Index = round((c2 - 1) * 0.9);
+    
+    printf("%s\t%lf\t%lf\n", merModul1, hodnotaArrModul1[q10Modul1Index],hodnotaArrModul1[q90Modul1Index]);
+    printf("%s\t%lf\t%lf\n", merModul2, hodnotaArrModul2[q10Modul2Index],hodnotaArrModul2[q90Modul2Index]);
+    
+    if (abs(hodnotaArrModul1[q10Modul1Index] - hodnotaArrModul2[q10Modul2Index])  > 2 )
+    {
+        printf("%s a %s su mimo povoleneho rozmedzia.\n", merModul1, merModul2);
+   
+    } else {
+        printf("%s a %s su v standartnej odchylke.\n", merModul1, merModul2);
+    }
+}
+void x(char ***MerModul, char ***TypMerVeliciny)
+{
+    if (*MerModul == NULL) // ak dynamicke polia niesu vytvorene
+    {
+        printf("Polia nie su vytvorene.\n");
+        return;
+    }
+    int k;
+    scanf("%d", &k);
+    if (k <= 0)
+    {
+        printf("Cislo musi byt kladne nenulove!\n");
+        return;
+    }
+    int pocet = 0;
+    int pocet2 = 0;
+    for (; (*MerModul)[pocet] != NULL; pocet++)
+        ;
+    for (; (*TypMerVeliciny)[pocet2] != NULL; pocet2++)
+        ;
+    pocet = pocet + pocet2;
+    int merModulTypMer[pocet];
+    int c = 0;
+    for (int i = 0; (*MerModul)[i] != NULL; i++)
+    {
+        if (i % k == 0)
+        {
+            merModulTypMer[c] = (int)(*MerModul)[i][0];
+            c++;
+            merModulTypMer[c] = (int)(*TypMerVeliciny)[i][0];
+            c++;
+        }
+    }
+
+    for (int i = 0; i < c; i++) // bubble sort na CasIntArr
+    {
+        for (int j = 0; j < c - 1; j++)
+        {
+            if (merModulTypMer[j] > merModulTypMer[j + 1])
+            {
+                int temp = merModulTypMer[j];
+                merModulTypMer[j] = merModulTypMer[j + 1];
+                merModulTypMer[j + 1] = temp;
+            }
+        }
+    }
+
+    int temp[c];
+    int j = 0;
+    for (int i = 0; i < c - 1; i++)
+    {
+        if (merModulTypMer[i] != merModulTypMer[i + 1])
+        {
+            temp[j++] = merModulTypMer[i];
+        }
+    }
+    temp[j++] = merModulTypMer[c - 1];
+    for (int i = 0; i < j; i++)
+    {
+        merModulTypMer[i] = temp[i];
+    }
+    for (int i = 0; i < j; i++)
+    {
+        printf("%c\t", merModulTypMer[i]);
+    }
+    printf("\n");
+    int pocetnost[j];
+    memset(pocetnost, 0, j * sizeof(int));
+    int cc = 0;
+    for (int i = 0; (*MerModul)[i] != NULL; i++)
+    {
+        if (i % k == 0)
+        {
+            for (int x = 0; x < j; x++)
+            {
+                if ((*MerModul)[i][0] == (char)merModulTypMer[x] || (*TypMerVeliciny)[i][0] == (char)merModulTypMer[x])
+                {
+                    if ((*MerModul)[i][0] == (*TypMerVeliciny)[i][0])
+                    {
+                        pocetnost[x] += 1;
+                    }
+
+                    pocetnost[x] += 1;
+                }
+            }
+        }
+    }
+    for (int i = 0; i < j; i++)
+    {
+        printf("%d\t", pocetnost[i]);
+    }
+    printf("\n");
+    return;
+}
 int main()
 {
     FILE *subor = NULL;
@@ -966,7 +1142,7 @@ int main()
     char prikaz;
     while (1) // loop bezi pokial sa neukonci program
     {
-        scanf(" %c", &prikaz); // nacita prikaz
+        scanf(" %c", &prikaz);      // nacita prikaz
         while ((getchar()) != '\n') // vycisti sa input
             ;
         switch (prikaz) // volanie jednotlivych funkcii podla zadaneho prikazu
@@ -1034,8 +1210,14 @@ int main()
                 free(Datum);
             }
             return 0;
+        case 'x':
+            x(&MerModul, &TypMerVeliciny);
+            break;
+        case 'j':
+            j(&MerModul, &TypMerVeliciny, &Hodnota);
+            break;
         default:
-            printf("Nespravny prikaz\n"); // nespravny prikaz
+            printf("Nespravny prikaz.\n"); // nespravny prikaz
         }
     }
     return 0;

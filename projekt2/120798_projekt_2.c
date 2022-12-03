@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define BUFFER 256
+
 typedef struct dataLinkedList
 {
     long long int ID_cislo_mer_osoby;
@@ -36,37 +37,39 @@ void append(DATA **listHead, long long int ID_cislo_mer_osoby, char *Meno_osoby,
     last->next = new_node;
     return;
 }
-void delete (DATA **listHead, int position)
+void del(DATA **listHead, int position)
 {
-    DATA *temp;
-    DATA *prev;
-    temp = *listHead;
-    prev = *listHead;
-    for (int i = 0; i <= position; i++)
+    DATA *prev = NULL;
+    DATA *temp = *listHead;
+    int c = 0;
+    while (temp != NULL)
     {
-        if (i == 0 && position == 0)
+        if (c == position)
         {
-            *listHead = (*listHead)->next;
-            free(temp);
-        }
-        else
-        {
-            if (i == position && temp)
+            if (prev == NULL)
             {
-                prev->next = temp->next;
+                temp = *listHead;
+                *listHead = (*listHead)->next;
+                free(temp);
+            }
+            else if (temp->next == NULL)
+            {
+                prev->next = NULL;
                 free(temp);
             }
             else
             {
-                prev = temp;
-                if (prev == NULL)
-                    break;
-                temp = temp->next;
+                prev->next = temp->next;
+                free(temp);
             }
+            return;
         }
+        c++;
+        prev = temp;
+        temp = temp->next;
     }
+    return;
 }
-
 void n(DATA **listHead, FILE **file)
 {
     if (*file == NULL)
@@ -149,12 +152,6 @@ void n(DATA **listHead, FILE **file)
 void v(DATA *listHead)
 {
     int number = 1;
-
-    if (listHead == NULL)
-    {
-        printf("kokotzzzz\n");
-    }
-
     while (listHead != NULL)
     {
         printf("%d:\n", number);
@@ -188,7 +185,7 @@ void z(DATA **listHead)
         if (listHeads->ID_cislo_mer_osoby == ID_to_delete)
         {
             printf("Zaznam pre ID: %lld pre modul %s bol vymazany.\n", listHeads->ID_cislo_mer_osoby, listHeads->Mer_modul);
-            delete (listHead, position);
+            del(listHead, position);
             position--;
         }
         listHeads = listHeads->next;
@@ -349,6 +346,44 @@ void r(DATA **listHead)
     nodeC1->next = nodeC2->next;
     nodeC2->next = temp1;
 }
+void u(DATA **listHead)
+{
+    DATA *node = *listHead;
+    DATA *nextNode = (*listHead)->next;
+    int numberOfRecords = 0;
+    while (node != NULL)
+    {
+        numberOfRecords++;
+        node = node->next;
+    }
+    node = *listHead;
+    int nodeNumber = 1;
+    DATA **head;
+    DATA *tmp;
+    int swapped;
+    for (int i = 0; i <= numberOfRecords; i++)
+    {
+        head = listHead;
+        swapped = 0;
+        for (int j = 0; j < numberOfRecords - i - 1; j++)
+        {
+            node = *head;
+            nextNode = node->next;
+            if (node->Datum + node->Cas_merania < nextNode->Datum + nextNode->Cas_merania)
+            {
+                tmp = nextNode->next;
+                nextNode->next = node;
+                node->next = tmp;
+                *head = nextNode;
+                swapped = 1;
+            }
+            head = &(*head)->next;
+        }
+        if (swapped == 0)
+            break;
+    }
+    printf("Spajany zoznam bol usporiadany.\n");
+}
 int main()
 {
     FILE *file = NULL;
@@ -370,6 +405,7 @@ int main()
             z(&listHead);
             break;
         case 'u':
+            u(&listHead);
             break;
         case 'p':
             number = strtok(command, " ");
